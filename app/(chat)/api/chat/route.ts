@@ -19,6 +19,7 @@ import {
   DEFAULT_CHAT_MODEL,
   getCapabilities,
   getModelAvailability,
+  getProviderOptions,
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
@@ -55,6 +56,13 @@ function isModelStreamActivity(chunk: { type: string }) {
   return !["start", "start-step", "finish-step", "finish", "raw"].includes(
     chunk.type
   );
+}
+
+const PROXY_NOT_CONFIGURED_MESSAGE =
+  "The model proxy is not configured. Set AI_PROXY_API_KEY (and AI_PROXY_BASE_URL if you are not using the default endpoint).";
+
+function isProxyConfigurationError(error: unknown) {
+  return error instanceof Error && error.message?.includes("AI_PROXY_API_KEY");
 }
 
 function getStreamContext() {
@@ -294,14 +302,7 @@ export async function POST(request: Request) {
           onError() {
             stopWaitingStatus();
           },
-          providerOptions: {
-            ...(modelConfig?.gatewayOrder && {
-              gateway: { order: modelConfig.gatewayOrder },
-            }),
-            ...(modelConfig?.reasoningEffort && {
-              openai: { reasoningEffort: modelConfig.reasoningEffort },
-            }),
-          },
+          providerOptions: getProviderOptions(modelConfig),
           stopWhen: isStepCount(5),
           telemetry: {
             functionId: "stream-text",
@@ -389,6 +390,9 @@ export async function POST(request: Request) {
         }
       },
       onError: (error) => {
+        if (isProxyConfigurationError(error)) {
+          return PROXY_NOT_CONFIGURED_MESSAGE;
+        }
         if (
           error instanceof Error &&
           error.message?.includes(
@@ -428,6 +432,11 @@ export async function POST(request: Request) {
 
     if (error instanceof ChatbotError) {
       return error.toResponse();
+    }
+
+    if (isProxyConfigurationError(error)) {
+      console.error(PROXY_NOT_CONFIGURED_MESSAGE, { vercelId });
+      return new ChatbotError("bad_request:chat").toResponse();
     }
 
     if (
