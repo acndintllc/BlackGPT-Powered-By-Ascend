@@ -1,10 +1,10 @@
 <div align="center">
-  <img alt="Blackgpt" src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Blackgpt</h1>
+  <img alt="BlackGPT" src="app/(chat)/opengraph-image.png">
+  <h1 align="center">BlackGPT</h1>
 </div>
 
 <p align="center">
-    Blackgpt is an AI assistant from <strong>Ascend</strong>, built with Next.js and the AI SDK.
+    BlackGPT is an AI assistant from <strong>Ascend</strong>, built with Next.js and the AI SDK.
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@
 
 ## Model Providers
 
-Blackgpt serves its default model, **Qwen 3.8 Max**, through Ascend's OpenAI-compatible proxy. The remaining curated models still route through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway).
+BlackGPT serves its default model, **Qwen 3.8 Max**, through Ascend's OpenAI-compatible proxy. The remaining curated models still route through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway).
 
 Models are declared in `lib/ai/models.ts`. Each entry carries a `source`:
 
@@ -69,13 +69,13 @@ With the [AI SDK](https://ai-sdk.dev/docs/introduction), you can also switch to 
 
 ## Deploy Your Own
 
-You can deploy your own version of Blackgpt to Vercel with one click:
+You can deploy your own version of BlackGPT to Vercel with one click:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/templates/next.js/chatbot)
 
 ## Running locally
 
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Blackgpt. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+You will need to use the environment variables [defined in `.env.example`](.env.example) to run BlackGPT. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
 
 > Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various AI and authentication provider accounts.
 
@@ -89,4 +89,4 @@ pnpm db:migrate # Setup database or apply latest database changes
 pnpm dev
 ```
 
-Blackgpt should now be running on [localhost:3000](http://localhost:3000).
+BlackGPT should now be running on [localhost:3000](http://localhost:3000).

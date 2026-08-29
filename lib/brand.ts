@@ -7,7 +7,7 @@
  */
 
 /** Product name. */
-export const APP_NAME = "Blackgpt";
+export const APP_NAME = "BlackGPT";
 
 /** Parent brand the product ships under. */
 export const PARENT_BRAND = "Ascend";
