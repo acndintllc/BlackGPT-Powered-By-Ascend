@@ -18,9 +18,7 @@ import {
   useArtifactSelector,
 } from "@/hooks/use-artifact";
 import type { Attachment, ChatMessage } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { Artifact } from "./artifact";
-import { CanvasEmptyState } from "./canvas-empty-state";
 import { ChatHeader } from "./chat-header";
 import { DataStreamHandler } from "./data-stream-handler";
 import { submitEditedMessage } from "./message-editor";
@@ -114,85 +112,51 @@ export function ChatShell() {
   return (
     <>
       <div className="flex h-dvh w-full flex-row overflow-hidden">
-        <div
-          className={cn(
-            "flex min-w-0 flex-col bg-sidebar transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-            isArtifactVisible ? "w-[40%]" : "w-full"
-          )}
-        >
+        <div className="flex w-full min-w-0 flex-col bg-sidebar md:w-[35%]">
           <ChatHeader
             chatId={chatId}
             isReadonly={isReadonly}
             selectedVisibilityType={visibilityType}
           />
 
-          {/*
-            Split workspace. The two columns each mount their own Messages
-            instance, so each owns its scroll container and the vertical
-            positions never sync.
-          */}
-          <div className="flex min-h-0 flex-1 flex-row overflow-hidden bg-background md:rounded-tl-[12px] md:border-t md:border-l md:border-border/40">
-            {/* User command module — 35% */}
-            <div className="flex h-full w-[35%] min-w-0 flex-col border-border/40 border-r">
-              <Messages
-                addToolApprovalResponse={addToolApprovalResponse}
-                chatId={chatId}
-                isArtifactVisible={isArtifactVisible}
-                isLoading={isLoading}
-                isReadonly={isReadonly}
-                messageRole="user"
-                messages={messages}
-                onEditMessage={handleEditMessage}
-                regenerate={regenerate}
-                selectedModelId={currentModelId}
-                setMessages={setMessages}
-                status={status}
-                votes={votes}
-              />
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background md:rounded-tl-[12px] md:border-t md:border-l md:border-border/40">
+            <Messages
+              addToolApprovalResponse={addToolApprovalResponse}
+              chatId={chatId}
+              isArtifactVisible={isArtifactVisible}
+              isReadonly={isReadonly}
+              messages={messages}
+              onEditMessage={handleEditMessage}
+              regenerate={regenerate}
+              selectedModelId={currentModelId}
+              setMessages={setMessages}
+              status={status}
+              votes={votes}
+            />
 
-              <div className="z-1 shrink-0 gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-                {!isReadonly && (
-                  <MultimodalInput
-                    attachments={attachments}
-                    chatId={chatId}
-                    editingMessage={editingMessage}
-                    input={input}
-                    isLoading={isLoading}
-                    messages={messages}
-                    onCancelEdit={handleCancelEdit}
-                    onModelChange={setCurrentModelId}
-                    selectedModelId={currentModelId}
-                    selectedVisibilityType={visibilityType}
-                    sendMessage={
-                      editingMessage ? handleSendEditedMessage : sendMessage
-                    }
-                    setAttachments={setAttachments}
-                    setInput={setInput}
-                    setMessages={setMessages}
-                    status={status}
-                    stop={stop}
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* AI output canvas — 65% */}
-            <div className="flex h-full w-[65%] min-w-0 flex-col">
-              <Messages
-                addToolApprovalResponse={addToolApprovalResponse}
-                chatId={chatId}
-                emptyState={<CanvasEmptyState />}
-                isArtifactVisible={isArtifactVisible}
-                isLoading={isLoading}
-                isReadonly={isReadonly}
-                messageRole="assistant"
-                messages={messages}
-                regenerate={regenerate}
-                selectedModelId={currentModelId}
-                setMessages={setMessages}
-                status={status}
-                votes={votes}
-              />
+            <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl shrink-0 gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+              {!isReadonly && (
+                <MultimodalInput
+                  attachments={attachments}
+                  chatId={chatId}
+                  editingMessage={editingMessage}
+                  input={input}
+                  isLoading={isLoading}
+                  messages={messages}
+                  onCancelEdit={handleCancelEdit}
+                  onModelChange={setCurrentModelId}
+                  selectedModelId={currentModelId}
+                  selectedVisibilityType={visibilityType}
+                  sendMessage={
+                    editingMessage ? handleSendEditedMessage : sendMessage
+                  }
+                  setAttachments={setAttachments}
+                  setInput={setInput}
+                  setMessages={setMessages}
+                  status={status}
+                  stop={stop}
+                />
+              )}
             </div>
           </div>
         </div>
