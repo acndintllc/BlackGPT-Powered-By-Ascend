@@ -23,3 +23,15 @@ export const APP_SLUG = "blackgpt";
 
 /** Canonical public origin, overridable per deployment. */
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://blackgpt.ai";
+
+/**
+ * Brand artwork. Both are black-on-transparent, so surfaces that sit on a
+ * dark background invert them (`dark:invert`) rather than shipping a second
+ * copy. Paths are plain `public/` paths — `next/image` applies any basePath.
+ */
+
+/** Full "Black [mark] GPT" wordmark. */
+export const LOGO_WORDMARK = "/images/blackgpt-wordmark.png";
+
+/** Square mark on its own, for tight slots like the collapsed sidebar. */
+export const LOGO_MARK = "/images/blackgpt-mark.png";

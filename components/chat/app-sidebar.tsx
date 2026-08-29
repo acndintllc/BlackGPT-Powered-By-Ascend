@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  MessageSquareIcon,
-  PanelLeftIcon,
-  PenSquareIcon,
-  TrashIcon,
-} from "lucide-react";
+import { PanelLeftIcon, PenSquareIcon, TrashIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
@@ -32,7 +28,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { APP_FULL_NAME } from "@/lib/brand";
+import { APP_FULL_NAME, LOGO_MARK } from "@/lib/brand";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -95,7 +91,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   tooltip={APP_FULL_NAME}
                 >
                   <Link href="/" onClick={closeMobile}>
-                    <MessageSquareIcon className="size-4 text-sidebar-foreground/50" />
+                    <Image
+                      alt={APP_FULL_NAME}
+                      className="size-5 dark:invert"
+                      height={20}
+                      src={LOGO_MARK}
+                      width={20}
+                    />
                   </Link>
                 </SidebarMenuButton>
                 <Tooltip>
