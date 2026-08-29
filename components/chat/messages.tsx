@@ -1,12 +1,11 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { ArrowDownIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useMessages } from "@/hooks/use-messages";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
-import { Greeting } from "./greeting";
 import { PreviewMessage, ThinkingMessage } from "./message";
 
 type MessagesProps = {
@@ -22,6 +21,15 @@ type MessagesProps = {
   isLoading?: boolean;
   selectedModelId: string;
   onEditMessage?: (message: ChatMessage) => void;
+  /**
+   * Which side of the conversation this column renders. Named `messageRole`
+   * rather than `role` so it is not mistaken for the ARIA attribute. Each
+   * column mounts its own `useMessages`, so the two scroll positions are
+   * fully independent.
+   */
+  messageRole: "user" | "assistant";
+  /** Shown in place of the list while this column has no messages. */
+  emptyState?: React.ReactNode;
 };
 
 function PureMessages({
@@ -37,6 +45,8 @@ function PureMessages({
   isLoading,
   selectedModelId: _selectedModelId,
   onEditMessage,
+  messageRole,
+  emptyState,
 }: MessagesProps) {
   const {
     containerRef: messagesContainerRef,
@@ -51,6 +61,12 @@ function PureMessages({
 
   useDataStream();
 
+  const columnMessages = useMemo(
+    () => messages.filter((message) => message.role === messageRole),
+    [messages, messageRole]
+  );
+  const isAssistantColumn = messageRole === "assistant";
+
   const prevChatIdRef = useRef(chatId);
   useEffect(() => {
     if (prevChatIdRef.current !== chatId) {
@@ -64,27 +80,29 @@ function PureMessages({
   }, [scrollToBottom]);
 
   return (
-    <div className="relative flex-1 bg-background">
-      {messages.length === 0 && !isLoading && (
+    <div className="relative h-full min-h-0 flex-1 bg-background">
+      {columnMessages.length === 0 && !isLoading && emptyState && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <Greeting />
+          {emptyState}
         </div>
       )}
       <div
         className={cn(
-          "absolute inset-0 touch-pan-y overflow-y-auto",
-          messages.length > 0 ? "bg-background" : "bg-transparent"
+          "absolute inset-0 h-full touch-pan-y overflow-y-auto",
+          columnMessages.length > 0 ? "bg-background" : "bg-transparent"
         )}
         ref={messagesContainerRef}
         style={isArtifactVisible ? { scrollbarWidth: "none" } : undefined}
       >
         <div className="mx-auto flex min-h-full min-w-0 max-w-4xl flex-col gap-5 px-2 py-6 md:gap-7 md:px-4">
-          {messages.map((message, index) => (
+          {columnMessages.map((message, index) => (
             <PreviewMessage
               addToolApprovalResponse={addToolApprovalResponse}
               chatId={chatId}
               isLoading={
-                status === "streaming" && messages.length - 1 === index
+                isAssistantColumn &&
+                status === "streaming" &&
+                columnMessages.length - 1 === index
               }
               isReadonly={isReadonly}
               key={message.id}
@@ -92,7 +110,7 @@ function PureMessages({
               onEdit={onEditMessage}
               regenerate={regenerate}
               requiresScrollPadding={
-                hasSentMessage && index === messages.length - 1
+                hasSentMessage && index === columnMessages.length - 1
               }
               setMessages={setMessages}
               vote={
@@ -103,9 +121,9 @@ function PureMessages({
             />
           ))}
 
-          {status === "submitted" && messages.at(-1)?.role !== "assistant" && (
-            <ThinkingMessage />
-          )}
+          {isAssistantColumn &&
+            status === "submitted" &&
+            messages.at(-1)?.role !== "assistant" && <ThinkingMessage />}
 
           <div
             className="min-h-[24px] min-w-[24px] shrink-0"
