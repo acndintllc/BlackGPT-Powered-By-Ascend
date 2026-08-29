@@ -1,18 +1,29 @@
-export const DEFAULT_CHAT_MODEL = "moonshotai/kimi-k2.5";
+/**
+ * Stable, app-level id for the Qwen model served through our OpenAI-compatible
+ * proxy. This value is persisted on chats and sent by the client, so it must
+ * stay constant even if the upstream id changes — override the upstream id with
+ * `QWEN_MODEL_ID` instead.
+ */
+export const QWEN_MAX_MODEL_ID = "qwen/qwen3.8-max";
 
-export const titleModel = {
-  description: "Fast model for title generation",
-  gatewayOrder: ["fireworks", "bedrock"],
-  id: "moonshotai/kimi-k2.5",
-  name: "Kimi K2.5",
-  provider: "moonshotai",
-};
+/** The model id sent upstream to the proxy. */
+export const QWEN_MAX_PROVIDER_MODEL_ID =
+  process.env.QWEN_MODEL_ID ?? "qwen3.8-max";
+
+export const DEFAULT_CHAT_MODEL = QWEN_MAX_MODEL_ID;
 
 export type ModelCapabilities = {
   tools: boolean;
   vision: boolean;
   reasoning: boolean;
 };
+
+/**
+ * Where a model is served from.
+ * - `gateway`: routed through the Vercel AI Gateway (default).
+ * - `proxy`: routed through our OpenAI-compatible proxy.
+ */
+export type ModelSource = "gateway" | "proxy";
 
 export type ChatModel = {
   id: string;
@@ -21,9 +32,35 @@ export type ChatModel = {
   description: string;
   gatewayOrder?: string[];
   reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high";
+  source?: ModelSource;
+  /** Upstream model id, when it differs from the app-level `id`. */
+  providerModelId?: string;
+  /**
+   * Statically declared capabilities. Required for `proxy` models, which are
+   * not discoverable through the AI Gateway capability endpoint.
+   */
+  capabilities?: ModelCapabilities;
+};
+
+export const titleModel: ChatModel = {
+  description: "Fast model for title generation",
+  id: QWEN_MAX_MODEL_ID,
+  name: "Qwen 3.8 Max",
+  provider: "qwen",
+  providerModelId: QWEN_MAX_PROVIDER_MODEL_ID,
+  source: "proxy",
 };
 
 export const chatModels: ChatModel[] = [
+  {
+    capabilities: { reasoning: false, tools: true, vision: false },
+    description: "Qwen flagship model, served via the Ascend proxy",
+    id: QWEN_MAX_MODEL_ID,
+    name: "Qwen 3.8 Max",
+    provider: "qwen",
+    providerModelId: QWEN_MAX_PROVIDER_MODEL_ID,
+    source: "proxy",
+  },
   {
     description: "Fast and capable model with tool use",
     gatewayOrder: ["bedrock", "deepinfra"],
@@ -68,6 +105,12 @@ export async function getCapabilities(): Promise<
 > {
   const results = await Promise.all(
     chatModels.map(async (model) => {
+      // Proxy-served models are not listed by the AI Gateway, so probing it
+      // would report no capabilities and silently disable tool calling.
+      if (model.capabilities) {
+        return [model.id, model.capabilities];
+      }
+
       try {
         const res = await fetch(
           `https://ai-gateway.vercel.sh/v1/models/${model.id}/endpoints`,
@@ -153,6 +196,36 @@ export function getActiveModels(): ChatModel[] {
   return chatModels;
 }
 
+/**
+ * Gateway routing and reasoning-effort hints are only meaningful for models
+ * served by the AI Gateway. Models routed through the OpenAI-compatible proxy
+ * take their model id and credentials from the proxy provider instead, so they
+ * get no provider-specific options.
+ */
+export function getProviderOptions(model: ChatModel | undefined) {
+  if (!model || model.source === "proxy") {
+    return {};
+  }
+
+  return {
+    ...(model.gatewayOrder && {
+      gateway: { order: model.gatewayOrder },
+    }),
+    ...(model.reasoningEffort && {
+      openai: { reasoningEffort: model.reasoningEffort },
+    }),
+  };
+}
+
+export function getModelById(modelId: string): ChatModel | undefined {
+  return chatModels.find((model) => model.id === modelId);
+}
+
+/** True when the model is served by the OpenAI-compatible proxy. */
+export function isProxyModel(modelId: string): boolean {
+  return getModelById(modelId)?.source === "proxy";
+}
+
 export const allowedModelIds = new Set(chatModels.map((m) => m.id));
 
 export const modelsByProvider = chatModels.reduce(
@@ -203,6 +276,11 @@ export async function getModelAvailability(
   const model = chatModels.find((item) => item.id === modelId);
 
   if (!model) {
+    return "unknown";
+  }
+
+  // Endpoint health is only observable for gateway-routed models.
+  if (model.source === "proxy") {
     return "unknown";
   }
 

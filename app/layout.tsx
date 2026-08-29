@@ -2,14 +2,31 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  APP_DESCRIPTION,
+  APP_FULL_NAME,
+  APP_NAME,
+  APP_URL,
+  PARENT_BRAND,
+} from "@/lib/brand";
 
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
-  description: "Next.js chatbot template using the AI SDK.",
-  metadataBase: new URL("https://chat.vercel.ai"),
-  title: "Next.js Chatbot Template",
+  applicationName: APP_NAME,
+  description: APP_DESCRIPTION,
+  metadataBase: new URL(APP_URL),
+  openGraph: {
+    description: APP_DESCRIPTION,
+    siteName: APP_FULL_NAME,
+    title: APP_FULL_NAME,
+  },
+  publisher: PARENT_BRAND,
+  title: {
+    default: APP_FULL_NAME,
+    template: `%s | ${APP_NAME}`,
+  },
 };
 
 export const viewport = {
