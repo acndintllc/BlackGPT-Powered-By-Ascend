@@ -1,10 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { APP_NAME } from "@/lib/brand";
+import { APP_NAME, LOGO_MARK } from "@/lib/brand";
 import { suggestions } from "@/lib/constants";
-import { SparklesIcon } from "./icons";
 
 function PreviewSuggestionButton({
   suggestion,
@@ -46,9 +46,13 @@ export function Preview() {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-tl-2xl bg-background">
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border/20 px-5">
-        <div className="flex size-5 items-center justify-center rounded bg-muted/60 ring-1 ring-border/50">
-          <SparklesIcon size={10} />
-        </div>
+        <Image
+          alt=""
+          className="size-5 dark:invert"
+          height={20}
+          src={LOGO_MARK}
+          width={20}
+        />
         <span className="text-[13px] text-muted-foreground">{APP_NAME}</span>
       </div>
 
